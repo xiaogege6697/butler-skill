@@ -12,7 +12,8 @@
 
 - `SKILL.md` — 核心工作流（触发词、检查点、踩坑教训、红线）
 - `references/platform-adapters.md` — 各平台适配参考
-- `references/dispatch-templates.md` — 4种常用派发模板
+- `references/dispatch-templates.md` — 5种常用派发模板（含无状态弱模型落盘）
+- `references/stateless-worker.md` — 无状态弱模型（MiMo/DeepSeek 等）协作手法
 
 ## 关键特性
 
@@ -21,6 +22,7 @@
 - **3类Subagent角色** — 侦察兵/临时工/专家
 - **5条核心踩坑教训** — 来自20+天真实实践的教训
 - **7条红线** — 违反必出问题
+- **无状态弱模型协作** — MiMo/DeepSeek 等 + shell 重定向落盘 + 上下文卫生（产出不进主线程上下文）
 
 ## 使用
 

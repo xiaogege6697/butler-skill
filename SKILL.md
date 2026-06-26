@@ -136,6 +136,17 @@ description: "管家skill：收到复杂任务时触发。强模型规划决策+
 
 反面：`"帮我调研一下AI新闻"` → 正确：`"找出今日3-5条AI新闻，每条含标题+URL+摘要，输出JSON"`
 
+## 无状态弱模型协作（MiMo / DeepSeek 等）
+
+Claude Code 下派执行类子任务（写代码/文档/调研/初筛）**优先用无状态弱模型（`mimo_worker.py` / DeepSeek 等）而非 Task tool**：Task tool 的 model 只接受 Claude 系（本环境=glm-5.2 强模型），派执行活反而烧强算力。无状态弱模型便宜，适合铺量执行。
+
+核心手法（详见 `references/stateless-worker.md`）：
+- **产出落盘**：`mimo_worker.py "<纯输出prompt>" > file`，MiMo 输出直接重定向到文件，**不进主线程上下文**。
+- **喂文件**：`mimo_worker.py "$(<指令>)$(cat file)"`，让 MiMo 读文件，原文不进上下文，只回收结论。
+- **文件操作主线程做**：MiMo 无文件系统权限，mkdir/写入/Edit 由主线程负责。
+- **上下文卫生**：主线程上下文是稀缺资源，文件 dump / 探索过程 / 长输出不得灌入；外包只回收结论摘要。
+- **轻量审核**：grep 抽关键行 + smoke check 真跑（compileall/analyze）兜底，不读全文；弱模型行号常错，定位以主线程核实为准。
+
 ## 核心踩坑教训
 
 1. **核心流程单 agent 做到底** — 多 agent 沟通成本 > 分工收益，出问题难追查。多 agent 只适合并行采集/一次性任务/专业分工
@@ -180,7 +191,7 @@ description: "管家skill：收到复杂任务时触发。强模型规划决策+
 | 平台 | 子任务机制 | 文件传递 |
 |------|-----------|---------|
 | OpenClaw | sessions_spawn / sessions_send | workspace/ |
-| Claude Code | Task tool | cwd |
+| Claude Code | Task tool（需强模型时）/ mimo_worker.py（无状态弱模型，执行类首选） | cwd / shell 重定向落盘 |
 | Codex | 子任务/沙箱执行 | 工作目录 |
 
 ## 模型分配参考
